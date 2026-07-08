@@ -183,11 +183,9 @@ export default function EditorPage() {
           </Button>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
+            <DropdownMenuTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+              <Download className="w-4 h-4" />
+              Export
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={exportAsPDF}>
