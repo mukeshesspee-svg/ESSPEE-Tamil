@@ -164,7 +164,7 @@ export default function AiWriterPage() {
           <div className="p-4 border rounded-md bg-muted/20 flex flex-col sm:flex-row items-center gap-4 justify-between">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Convert Font:</span>
-              <Select value={targetFont} onValueChange={setTargetFont}>
+              <Select value={targetFont} onValueChange={(value) => value && setTargetFont(value)}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Select Font" />
                 </SelectTrigger>
