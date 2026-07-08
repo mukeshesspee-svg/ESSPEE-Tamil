@@ -119,7 +119,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="theme">Theme</Label>
-              <Select value={theme} onValueChange={setTheme}>
+              <Select value={theme} onValueChange={(v) => v && setTheme(v)}>
                 <SelectTrigger id="theme">
                   <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
@@ -134,7 +134,7 @@ export default function SettingsPage() {
             
             <div className="space-y-2">
               <Label htmlFor="font">Default UI Font</Label>
-              <Select value={defaultFont} onValueChange={setDefaultFont}>
+              <Select value={defaultFont} onValueChange={(v) => v && setDefaultFont(v)}>
                 <SelectTrigger id="font">
                   <SelectValue placeholder="Select font" />
                 </SelectTrigger>

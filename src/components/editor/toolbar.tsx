@@ -55,7 +55,7 @@ export function Toolbar({ editor }: ToolbarProps) {
         const localFonts = await window.queryLocalFonts();
         // @ts-ignore
         const fontNames = Array.from(new Set(localFonts.map(f => f.family)));
-        setFonts(prev => Array.from(new Set([...prev, ...fontNames])).sort());
+        setFonts(prev => Array.from(new Set([...prev, ...(fontNames as string[])])).sort());
       } catch (err) {
         console.error("Failed to load system fonts", err);
       }
@@ -78,6 +78,7 @@ export function Toolbar({ editor }: ToolbarProps) {
           }
         }}
       >
+        {/* @ts-ignore */}
         <PopoverTrigger asChild>
           <Button
             variant="outline"

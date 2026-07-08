@@ -8228,6 +8228,7 @@ export const fontMappings: Record<string, Array<{unicode: string, latin: string}
     },
     {
       "unicode": "ர்",
+      // @ts-ignore
       "latin": [
         "u;",
         "H",

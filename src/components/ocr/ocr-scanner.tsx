@@ -238,7 +238,7 @@ export function OcrScanner() {
         <div className="flex items-center justify-between mt-2">
           <h3 className="text-lg font-medium">Source Image</h3>
           <div className="flex gap-2">
-            <Select value={ocrLang} onValueChange={setOcrLang} disabled={isProcessing}>
+            <Select value={ocrLang} onValueChange={(v) => v && setOcrLang(v)} disabled={isProcessing}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select Language" />
               </SelectTrigger>
@@ -341,7 +341,7 @@ export function OcrScanner() {
         <div className="mt-2 p-4 border rounded-md bg-muted/20 flex flex-col sm:flex-row items-center gap-4 justify-between">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Convert Font:</span>
-            <Select value={targetFont} onValueChange={setTargetFont}>
+            <Select value={targetFont} onValueChange={(v) => v && setTargetFont(v)}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Select Font" />
               </SelectTrigger>
