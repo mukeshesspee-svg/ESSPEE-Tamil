@@ -24,6 +24,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     checkPermissions();
+    // Load persisted settings from localStorage
+    const saved = localStorage.getItem("esspee-settings");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.autosave === "boolean") setAutosave(parsed.autosave);
+        if (parsed.defaultFont) setDefaultFont(parsed.defaultFont);
+      } catch {}
+    }
   }, []);
 
   const checkPermissions = async () => {
@@ -94,10 +103,12 @@ export default function SettingsPage() {
   
   const handleSave = () => {
     setIsSaving(true);
+    // Persist settings to localStorage so they survive page refreshes
+    localStorage.setItem("esspee-settings", JSON.stringify({ autosave, defaultFont }));
     setTimeout(() => {
       setIsSaving(false);
       toast.success("Settings saved successfully");
-    }, 800);
+    }, 400);
   };
 
   return (

@@ -12,6 +12,23 @@ import { jsPDF } from "jspdf";
 import { TamilFontConverter } from "@/lib/font-converter";
 import { fontMappings } from "@/lib/tamil-converter";
 
+// Reliable clipboard copy with fallback for older/non-HTTPS browsers
+const copyToClipboard = async (text: string): Promise<void> => {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+};
+
 export default function AiWriterPage() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState("");
@@ -24,27 +41,40 @@ export default function AiWriterPage() {
       toast.error("Please enter a prompt.");
       return;
     }
-    
+
     setIsGenerating(true);
-    
+
+    // 30-second timeout so users get a clear error instead of waiting forever
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
-      const response = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, tone })
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, tone }),
+        signal: controller.signal,
       });
-      
+      clearTimeout(timeoutId);
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to generate AI content");
       }
-      
+
       setResult(data.text);
       toast.success("Content generated successfully!");
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Something went wrong.");
+      clearTimeout(timeoutId);
+      if (err.name === "AbortError") {
+        toast.error(
+          "Request timed out after 30 seconds. Please try again or check your connection."
+        );
+      } else {
+        console.error(err);
+        toast.error(err.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -56,6 +86,15 @@ export default function AiWriterPage() {
     return converter.convert(result, "unicode", targetFont);
   };
 
+  const handleCopy = async () => {
+    try {
+      await copyToClipboard(result);
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Failed to copy. Please select the text manually.");
+    }
+  };
+
   const downloadTxt = () => {
     const text = getConvertedText();
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
@@ -65,12 +104,22 @@ export default function AiWriterPage() {
   const downloadDocx = async () => {
     const text = getConvertedText();
     const doc = new Document({
-      sections: [{
-        properties: {},
-        children: text.split('\n').map(line => new Paragraph({
-          children: [new TextRun({ text: line, font: targetFont !== 'unicode' ? targetFont : undefined })],
-        })),
-      }],
+      sections: [
+        {
+          properties: {},
+          children: text.split("\n").map(
+            (line) =>
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: line,
+                    font: targetFont !== "unicode" ? targetFont : undefined,
+                  }),
+                ],
+              })
+          ),
+        },
+      ],
     });
     const blob = await Packer.toBlob(doc);
     saveAs(blob, "ai-content.docx");
@@ -115,11 +164,17 @@ export default function AiWriterPage() {
               </SelectContent>
             </Select>
           </div>
-          <Textarea 
+          <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="flex-1 resize-none"
             placeholder="e.g. Write an application letter in Tamil requesting 2 days of leave..."
+            onKeyDown={(e) => {
+              // Allow Ctrl+Enter to generate
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !isGenerating && prompt) {
+                generateAI();
+              }
+            }}
           />
           <Button onClick={generateAI} disabled={isGenerating || !prompt} className="w-full">
             {isGenerating ? (
@@ -132,6 +187,9 @@ export default function AiWriterPage() {
               </span>
             )}
           </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            Tip: Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">Ctrl+Enter</kbd> to generate
+          </p>
         </div>
 
         {/* Output Column */}
@@ -139,10 +197,7 @@ export default function AiWriterPage() {
           <div className="flex items-center justify-between">
             <h3 className="font-medium">AI Output</h3>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => {
-                navigator.clipboard.writeText(result);
-                toast.success("Copied to clipboard");
-              }} disabled={!result}>
+              <Button variant="outline" size="sm" onClick={handleCopy} disabled={!result}>
                 <Copy className="w-4 h-4 mr-2" /> Copy
               </Button>
               <Button variant="outline" size="sm" onClick={() => setResult("")} disabled={!result}>
@@ -150,7 +205,11 @@ export default function AiWriterPage() {
               </Button>
             </div>
           </div>
-          <div className={`flex-1 border rounded-md p-4 bg-background relative overflow-y-auto ${isGenerating ? 'opacity-50' : ''}`}>
+          <div
+            className={`flex-1 border rounded-md p-4 bg-background relative overflow-y-auto ${
+              isGenerating ? "opacity-50" : ""
+            }`}
+          >
             {result ? (
               <div className="font-tamil leading-relaxed whitespace-pre-wrap">{result}</div>
             ) : (
@@ -163,27 +222,49 @@ export default function AiWriterPage() {
           {/* Export Controls */}
           <div className="p-4 border rounded-md bg-muted/20 flex flex-col sm:flex-row items-center gap-4 justify-between">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Convert Font:</span>
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                Convert Font:
+              </span>
               <Select value={targetFont} onValueChange={(value) => value && setTargetFont(value)}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Select Font" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="unicode">Unicode (Standard)</SelectItem>
-                  {Object.keys(fontMappings).map(font => (
-                    <SelectItem key={font} value={font} className="capitalize">{font}</SelectItem>
+                  {Object.keys(fontMappings).map((font) => (
+                    <SelectItem key={font} value={font} className="capitalize">
+                      {font}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-              <Button variant="outline" size="sm" onClick={downloadTxt} disabled={!result} className="whitespace-nowrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadTxt}
+                disabled={!result}
+                className="whitespace-nowrap"
+              >
                 <FileText className="w-4 h-4 mr-2" /> TXT
               </Button>
-              <Button variant="outline" size="sm" onClick={downloadDocx} disabled={!result} className="whitespace-nowrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadDocx}
+                disabled={!result}
+                className="whitespace-nowrap"
+              >
                 <FileIcon className="w-4 h-4 mr-2 text-blue-600" /> DOCX
               </Button>
-              <Button variant="outline" size="sm" onClick={downloadPdf} disabled={!result} className="whitespace-nowrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadPdf}
+                disabled={!result}
+                className="whitespace-nowrap"
+              >
                 <Download className="w-4 h-4 mr-2 text-red-600" /> PDF
               </Button>
             </div>
