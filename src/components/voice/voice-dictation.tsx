@@ -95,7 +95,7 @@ export function VoiceDictation() {
       console.error("Speech recognition error", event.error);
       if (event.error === "not-allowed") {
         toast.error(
-          "Microphone access blocked! Please click the lock icon in the browser address bar to allow it."
+          "Microphone blocked! If access is granted, check if another app is using the mic, or if your browser (like Brave) blocks Speech APIs."
         );
         isListeningRef.current = false;
         setIsListening(false);
@@ -128,7 +128,7 @@ export function VoiceDictation() {
     };
   }, []);
 
-  const toggleListening = () => {
+  const toggleListening = async () => {
     if (!recognitionRef.current) {
       toast.error("Voice dictation is not supported in this browser.");
       return;
@@ -139,10 +139,19 @@ export function VoiceDictation() {
       isListeningRef.current = false;
       setIsListening(false);
     } else {
-      // Sync the ref with whatever the user may have typed manually
-      finalTranscriptRef.current = transcript;
-      recognitionRef.current.lang = language;
       try {
+        // Workaround for Web Speech API "not-allowed" bug:
+        // Explicitly request media access first. This forces the OS/Browser to correctly
+        // handle permissions before SpeechRecognition tries (and fails silently) to do it.
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach((track) => track.stop());
+        }
+
+        // Sync the ref with whatever the user may have typed manually
+        finalTranscriptRef.current = transcript;
+        recognitionRef.current.lang = language;
+        
         recognitionRef.current.start();
         isListeningRef.current = true;
         setIsListening(true);
@@ -150,7 +159,7 @@ export function VoiceDictation() {
       } catch (e: any) {
         if (e.name === "NotAllowedError" || e.message?.includes("not allowed")) {
           toast.error(
-            "Microphone access denied. Please click the lock icon in your address bar and 'Allow' the microphone."
+            "Microphone blocked. If access is granted, ensure no other app is using it, and that your browser doesn't block Speech APIs (like Brave)."
           );
         } else {
           toast.error("Microphone is busy or blocked.");
