@@ -128,7 +128,7 @@ export function VoiceDictation() {
     };
   }, []);
 
-  const toggleListening = async () => {
+  const toggleListening = () => {
     if (!recognitionRef.current) {
       toast.error("Voice dictation is not supported in this browser.");
       return;
@@ -140,14 +140,6 @@ export function VoiceDictation() {
       setIsListening(false);
     } else {
       try {
-        // Workaround for Web Speech API "not-allowed" bug:
-        // Explicitly request media access first. This forces the OS/Browser to correctly
-        // handle permissions before SpeechRecognition tries (and fails silently) to do it.
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach((track) => track.stop());
-        }
-
         // Sync the ref with whatever the user may have typed manually
         finalTranscriptRef.current = transcript;
         recognitionRef.current.lang = language;
@@ -159,10 +151,10 @@ export function VoiceDictation() {
       } catch (e: any) {
         if (e.name === "NotAllowedError" || e.message?.includes("not allowed")) {
           toast.error(
-            "Microphone blocked. If access is granted, ensure no other app is using it, and that your browser doesn't block Speech APIs (like Brave)."
+            "Microphone blocked. Ensure no other app is using it, and you are using Google Chrome (not Brave)."
           );
         } else {
-          toast.error("Microphone is busy or blocked.");
+          toast.error(`Mic error: ${e.name || "Unknown"} - ${e.message || "busy/blocked"}`);
         }
       }
     }
