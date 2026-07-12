@@ -58,12 +58,13 @@ export function AppSidebar() {
             <SidebarMenu className="space-y-1">
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  {/* @ts-ignore */}
-                  <SidebarMenuButton asChild isActive={pathname === item.url} className="py-5">
-                    <Link href={item.url} className="flex items-center gap-3 w-full">
-                      <item.icon className="w-5 h-5" />
-                      <span className="text-sm font-medium">{item.title}</span>
-                    </Link>
+                  <SidebarMenuButton 
+                    isActive={pathname === item.url} 
+                    className="py-5"
+                    render={<Link href={item.url} className="flex items-center gap-3 w-full" />}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -75,12 +76,13 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                {/* @ts-ignore */}
-                <SidebarMenuButton asChild isActive={pathname === "/settings"} className="py-5">
-                  <Link href="/settings" className="flex items-center gap-3 w-full">
-                    <Settings className="w-5 h-5" />
-                    <span className="text-sm font-medium">Settings</span>
-                  </Link>
+                <SidebarMenuButton 
+                  isActive={pathname === "/settings"} 
+                  className="py-5"
+                  render={<Link href="/settings" className="flex items-center gap-3 w-full" />}
+                >
+                  <Settings className="w-5 h-5" />
+                  <span className="text-sm font-medium">Settings</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

@@ -42,9 +42,24 @@ export function OcrScanner() {
   const [result, setResult] = useState("");
   const [ocrLang, setOcrLang] = useState("tam");
   const [extractTamilOnly, setExtractTamilOnly] = useState(false);
-  const [useAi, setUseAi] = useState(false);
-  const [targetFont, setTargetFont] = useState("unicode");
+  const [useAi, setUseAi] = useState(true);
+  const [autoCorrect, setAutoCorrect] = useState(true);
+  const [targetFont, setTargetFont] = useState("bamini");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isProcessing && useAi) {
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          // Slow down as it gets closer to 95%
+          const increment = prev < 60 ? 3 : prev < 85 ? 1 : prev < 95 ? 0.5 : 0;
+          return Math.min(prev + increment, 95);
+        });
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [isProcessing, useAi]);
 
   // Detect if a file looks like a mobile photo (large dimensions, JPEG from camera)
   const isMobilePhoto = (file: File, img: HTMLImageElement): boolean => {
@@ -123,15 +138,15 @@ export function OcrScanner() {
         let mode = ocrLang;
         if (extractTamilOnly && ocrLang === "eng+tam") mode = "eng+tam-filtered";
 
-        // 30-second timeout for the AI OCR request
+        // 90-second timeout for the AI OCR request (dense handwriting takes longer)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const timeoutId = setTimeout(() => controller.abort(), 90000);
 
         try {
           const response = await fetch("/api/ocr", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ base64Image: processedUrl, languageMode: mode }),
+            body: JSON.stringify({ base64Image: processedUrl, languageMode: mode, autoCorrect }),
             signal: controller.signal,
           });
           clearTimeout(timeoutId);
@@ -147,7 +162,7 @@ export function OcrScanner() {
           clearTimeout(timeoutId);
           if (fetchErr.name === "AbortError") {
             throw new Error(
-              "Request timed out after 30 seconds. The server took too long. Please try again with a smaller image or check your connection."
+              "Request timed out after 90 seconds. The server took too long. Please try again with a smaller image or check your connection."
             );
           }
           throw fetchErr;
@@ -218,9 +233,14 @@ export function OcrScanner() {
         );
       }
 
-      const text = await processImageText(processedUrl);
+      let text = await processImageText(processedUrl);
 
       if (text) {
+        if (targetFont !== "unicode") {
+          const converter = new TamilFontConverter();
+          text = converter.convert(text, "unicode", targetFont);
+        }
+
         if (selectedFiles.length > 1) {
           cumulativeResult += `--- Page ${i + 1} ---\n\n${text}\n\n`;
         } else {
@@ -247,12 +267,6 @@ export function OcrScanner() {
     }
   };
 
-  const getConvertedText = () => {
-    if (targetFont === "unicode") return result;
-    const converter = new TamilFontConverter();
-    return converter.convert(result, "unicode", targetFont);
-  };
-
   const handleCopy = async () => {
     try {
       await copyToClipboard(result);
@@ -263,18 +277,16 @@ export function OcrScanner() {
   };
 
   const downloadTxt = () => {
-    const text = getConvertedText();
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([result], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "ocr-extracted.txt");
   };
 
   const downloadDocx = async () => {
-    const text = getConvertedText();
     const doc = new Document({
       sections: [
         {
           properties: {},
-          children: text.split("\n").map(
+          children: result.split("\n").map(
             (line) =>
               new Paragraph({
                 children: [
@@ -293,12 +305,11 @@ export function OcrScanner() {
   };
 
   const downloadPdf = () => {
-    const text = getConvertedText();
     const doc = new jsPDF();
     const margin = 10;
     const pageWidth = doc.internal.pageSize.getWidth();
     doc.setFontSize(12);
-    const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
+    const lines = doc.splitTextToSize(result, pageWidth - margin * 2);
     doc.text(lines, margin, 20);
     doc.save("ocr-extracted.pdf");
   };
@@ -320,9 +331,25 @@ export function OcrScanner() {
             </div>
           </div>
           {useAi ? (
-            <p className="text-xs text-muted-foreground">
-              ✅ AI Mode is ON. Gemini Vision will handle mobile photos, shadows, angles, and blurry text with <strong>near 100% accuracy</strong>. Also supports PDF scanning.
-            </p>
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                ✅ AI Mode is ON. Gemini Vision will handle mobile photos, shadows, angles, and blurry text with <strong>near 100% accuracy</strong>. Also supports PDF scanning.
+              </p>
+              <div className="flex items-center justify-between pt-3 border-t border-primary/10 mt-3">
+                <label
+                  htmlFor="auto-correct-top"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  Auto-correct Spelling Mistakes
+                </label>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="auto-correct-top" className="text-xs font-medium cursor-pointer select-none text-muted-foreground">
+                    {autoCorrect ? "Enabled" : "Disabled"}
+                  </label>
+                  <Switch id="auto-correct-top" checked={autoCorrect} onCheckedChange={setAutoCorrect} />
+                </div>
+              </div>
+            </div>
           ) : (
             <p className="text-xs text-amber-700 dark:text-amber-400">
               ⚠️ <strong>Offline mode is ON.</strong> This works well for clean, flat, scanned documents. For <strong>mobile camera photos</strong> (angled, shadows, real-world lighting), please <strong>enable AI Mode</strong> above for accurate results.
@@ -392,20 +419,15 @@ export function OcrScanner() {
                   ? `Scanning Page ${batchStatus.current} of ${batchStatus.total}...`
                   : "Scanning..."}
               </div>
-              {!useAi && (
-                <>
-                  <div className="w-64 h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary transition-all duration-300 ease-out"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <div className="mt-2 text-sm text-muted-foreground">{progress}% complete</div>
-                </>
-              )}
-              {useAi && (
-                <div className="text-sm text-muted-foreground mt-1">Sending to Gemini AI...</div>
-              )}
+              <div className="w-64 h-2 bg-secondary rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-300 ease-out"
+                  style={{ width: `${Math.floor(progress)}%` }}
+                />
+              </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                {useAi ? `Analyzing with Gemini... ${Math.floor(progress)}%` : `${Math.floor(progress)}% complete`}
+              </div>
             </div>
           )}
         </div>
@@ -427,6 +449,7 @@ export function OcrScanner() {
             </label>
           </div>
         )}
+
       </div>
 
       {/* Output Column */}
@@ -446,7 +469,7 @@ export function OcrScanner() {
         <Textarea
           value={result}
           onChange={(e) => setResult(e.target.value)}
-          className="flex-1 min-h-[400px] text-lg font-tamil resize-none p-6 leading-relaxed bg-background"
+          className={`flex-1 min-h-[400px] text-lg resize-none p-6 leading-relaxed bg-background placeholder:font-sans ${targetFont === 'bamini' ? 'font-bamini' : 'font-tamil'}`}
           placeholder="Extracted text will appear here. You can edit it manually if needed."
         />
 
@@ -456,7 +479,21 @@ export function OcrScanner() {
             <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
               Convert Font:
             </span>
-            <Select value={targetFont} onValueChange={(v) => v && setTargetFont(v)}>
+            <Select 
+              value={targetFont} 
+              onValueChange={(v) => {
+                if (v && result) {
+                  try {
+                    const converter = new TamilFontConverter();
+                    const converted = converter.convert(result, targetFont, v);
+                    setResult(converted);
+                  } catch (e) {
+                    console.error("Conversion error", e);
+                  }
+                }
+                if (v) setTargetFont(v);
+              }}
+            >
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Select Font" />
               </SelectTrigger>

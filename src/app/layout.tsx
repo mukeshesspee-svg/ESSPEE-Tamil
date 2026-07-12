@@ -33,7 +33,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${notoSansTamil.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

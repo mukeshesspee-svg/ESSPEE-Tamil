@@ -1,4 +1,5 @@
 import { fontMappings } from './tamil-converter';
+import { regExpHelper } from 'tamil-language-tools-and-assets';
 
 export type FontEncoding = 'unicode' | string;
 
@@ -7,6 +8,11 @@ export class TamilFontConverter {
     if (from === to) return text;
 
     if (from === 'unicode' && to !== 'unicode') {
+      const helperName = `UnicodeTo${to.charAt(0).toUpperCase() + to.slice(1)}`;
+      if (regExpHelper && (regExpHelper as Record<string, (text: string) => string>)[helperName]) {
+        return (regExpHelper as Record<string, (text: string) => string>)[helperName](text);
+      }
+
       const mapping = fontMappings[to];
       if (!mapping) throw new Error(`Mapping to ${to} is not supported.`);
       let result = text;
@@ -17,6 +23,11 @@ export class TamilFontConverter {
     }
 
     if (from !== 'unicode' && to === 'unicode') {
+      const helperName = `${from.charAt(0).toUpperCase() + from.slice(1)}ToUnicode`;
+      if (regExpHelper && (regExpHelper as Record<string, (text: string) => string>)[helperName]) {
+        return (regExpHelper as Record<string, (text: string) => string>)[helperName](text);
+      }
+
       const mapping = fontMappings[from];
       if (!mapping) throw new Error(`Mapping from ${from} is not supported.`);
       

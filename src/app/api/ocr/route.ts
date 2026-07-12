@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export const maxDuration = 120; // 120 seconds timeout for Vercel/Next.js backend
+
 export async function POST(req: Request) {
   try {
-    const { base64Image, languageMode } = await req.json();
+    const { base64Image, languageMode, autoCorrect = true } = await req.json();
 
     if (!base64Image) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
@@ -26,7 +28,10 @@ export async function POST(req: Request) {
     const base64Data = base64Image.split(",")[1];
     const mimeType = base64Image.split(";")[0].split(":")[1] || "image/png";
 
-    let prompt = "Extract all text from this image exactly as it appears. Maintain paragraphs and formatting.";
+    let prompt = autoCorrect 
+      ? "Extract all text from this image. Automatically correct any obvious spelling or grammatical mistakes in the text. Maintain paragraphs and formatting."
+      : "Extract all text from this image EXACTLY as it appears. Do NOT correct any spelling or grammatical mistakes, even if the text appears misspelled. Maintain paragraphs and formatting.";
+      
     if (languageMode === "tam") {
       prompt += " The text is strictly in Tamil and Numbers. Do not output any English letters.";
     } else if (languageMode === "eng") {

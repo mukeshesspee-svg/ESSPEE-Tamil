@@ -34,7 +34,7 @@ export default function AiWriterPage() {
   const [result, setResult] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [tone, setTone] = useState("professional");
-  const [targetFont, setTargetFont] = useState("unicode");
+  const [targetFont, setTargetFont] = useState("bamini");
 
   const generateAI = async () => {
     if (!prompt.trim()) {
@@ -63,7 +63,13 @@ export default function AiWriterPage() {
         throw new Error(data.error || "Failed to generate AI content");
       }
 
-      setResult(data.text);
+      let finalText = data.text;
+      if (targetFont !== "unicode") {
+        const converter = new TamilFontConverter();
+        finalText = converter.convert(finalText, "unicode", targetFont);
+      }
+
+      setResult(finalText);
       toast.success("Content generated successfully!");
     } catch (err: any) {
       clearTimeout(timeoutId);
@@ -80,11 +86,7 @@ export default function AiWriterPage() {
     }
   };
 
-  const getConvertedText = () => {
-    if (targetFont === "unicode") return result;
-    const converter = new TamilFontConverter();
-    return converter.convert(result, "unicode", targetFont);
-  };
+  // Result is stored in the targetFont format directly
 
   const handleCopy = async () => {
     try {
@@ -96,18 +98,16 @@ export default function AiWriterPage() {
   };
 
   const downloadTxt = () => {
-    const text = getConvertedText();
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([result], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "ai-content.txt");
   };
 
   const downloadDocx = async () => {
-    const text = getConvertedText();
     const doc = new Document({
       sections: [
         {
           properties: {},
-          children: text.split("\n").map(
+          children: result.split("\n").map(
             (line) =>
               new Paragraph({
                 children: [
@@ -126,12 +126,11 @@ export default function AiWriterPage() {
   };
 
   const downloadPdf = () => {
-    const text = getConvertedText();
     const doc = new jsPDF();
     const margin = 10;
     const pageWidth = doc.internal.pageSize.getWidth();
     doc.setFontSize(12);
-    const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
+    const lines = doc.splitTextToSize(result, pageWidth - margin * 2);
     doc.text(lines, margin, 20);
     doc.save("ai-content.pdf");
   };
@@ -205,19 +204,13 @@ export default function AiWriterPage() {
               </Button>
             </div>
           </div>
-          <div
-            className={`flex-1 border rounded-md p-4 bg-background relative overflow-y-auto ${
-              isGenerating ? "opacity-50" : ""
-            }`}
-          >
-            {result ? (
-              <div className="font-tamil leading-relaxed whitespace-pre-wrap">{result}</div>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-sm italic">
-                AI output will appear here
-              </div>
-            )}
-          </div>
+          <Textarea
+            value={result}
+            onChange={(e) => setResult(e.target.value)}
+            className={`flex-1 min-h-[400px] text-lg resize-none p-6 leading-relaxed shadow-sm border placeholder:font-sans ${targetFont === 'bamini' ? 'font-bamini' : 'font-tamil'} ${isGenerating ? 'opacity-50 pointer-events-none' : ''}`}
+            placeholder={isGenerating ? "Generating..." : "AI output will appear here. You can edit it manually if needed."}
+            readOnly={isGenerating}
+          />
 
           {/* Export Controls */}
           <div className="p-4 border rounded-md bg-muted/20 flex flex-col sm:flex-row items-center gap-4 justify-between">
@@ -225,7 +218,18 @@ export default function AiWriterPage() {
               <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
                 Convert Font:
               </span>
-              <Select value={targetFont} onValueChange={(value) => value && setTargetFont(value)}>
+              <Select value={targetFont} onValueChange={(value) => {
+                if (value && result) {
+                  try {
+                    const converter = new TamilFontConverter();
+                    const converted = converter.convert(result, targetFont, value);
+                    setResult(converted);
+                  } catch (e) {
+                    console.error("Conversion error", e);
+                  }
+                }
+                if (value) setTargetFont(value);
+              }}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Select Font" />
                 </SelectTrigger>

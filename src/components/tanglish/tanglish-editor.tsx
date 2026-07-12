@@ -32,7 +32,7 @@ const copyToClipboard = async (text: string): Promise<void> => {
 export function TanglishEditor() {
   const [text, setText] = useState("");
   const [isTranslating, setIsTranslating] = useState(false);
-  const [targetFont, setTargetFont] = useState("unicode");
+  const [targetFont, setTargetFont] = useState("bamini");
   const [apiError, setApiError] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

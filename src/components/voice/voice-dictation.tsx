@@ -34,7 +34,7 @@ export function VoiceDictation() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [language, setLanguage] = useState("ta-IN");
-  const [targetFont, setTargetFont] = useState("unicode");
+  const [targetFont, setTargetFont] = useState("bamini");
   const [isSupported, setIsSupported] = useState(true);
 
   const recognitionRef = useRef<any>(null);
@@ -73,12 +73,21 @@ export function VoiceDictation() {
       }
 
       // Combine committed text with this session's output
-      const newText = finalTranscriptRef.current + currentSessionFinal + currentSessionInterim;
+      let finalToAppend = currentSessionFinal;
+      let interimToAppend = currentSessionInterim;
+      
+      if (targetFont !== "unicode") {
+        const converter = new TamilFontConverter();
+        if (finalToAppend) finalToAppend = converter.convert(finalToAppend, "unicode", targetFont);
+        if (interimToAppend) interimToAppend = converter.convert(interimToAppend, "unicode", targetFont);
+      }
+
+      const newText = finalTranscriptRef.current + finalToAppend + interimToAppend;
       setTranscript(newText);
 
       // When we get finalized text this session, update the ref so onend can use it
-      if (currentSessionFinal) {
-        finalTranscriptRef.current = finalTranscriptRef.current + currentSessionFinal;
+      if (finalToAppend) {
+        finalTranscriptRef.current = finalTranscriptRef.current + finalToAppend;
       }
     };
 
@@ -151,9 +160,8 @@ export function VoiceDictation() {
   };
 
   const getConvertedText = () => {
-    if (targetFont === "unicode") return transcript;
-    const converter = new TamilFontConverter();
-    return converter.convert(transcript, "unicode", targetFont);
+    // Transcript is already stored in the targetFont format!
+    return transcript;
   };
 
   const handleConvertAndCopy = async () => {
@@ -305,7 +313,7 @@ export function VoiceDictation() {
             finalTranscriptRef.current = e.target.value;
           }
         }}
-        className="flex-1 min-h-[500px] text-lg font-tamil resize-none p-6 leading-relaxed shadow-sm border"
+        className={`flex-1 min-h-[500px] text-lg resize-none p-6 leading-relaxed shadow-sm border placeholder:font-sans ${targetFont === 'bamini' ? 'font-bamini' : 'font-tamil'}`}
         placeholder="Your transcribed text will appear here..."
       />
 
@@ -314,7 +322,22 @@ export function VoiceDictation() {
           <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
             Convert Font:
           </span>
-          <Select value={targetFont} onValueChange={(v) => v && setTargetFont(v)}>
+          <Select 
+            value={targetFont} 
+            onValueChange={(v) => {
+              if (v && transcript) {
+                try {
+                  const converter = new TamilFontConverter();
+                  const converted = converter.convert(transcript, targetFont, v);
+                  setTranscript(converted);
+                  finalTranscriptRef.current = converted;
+                } catch (e) {
+                  console.error("Conversion error", e);
+                }
+              }
+              if (v) setTargetFont(v);
+            }}
+          >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Select Font" />
             </SelectTrigger>
