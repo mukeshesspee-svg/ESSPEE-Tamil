@@ -57,10 +57,14 @@ export default function SettingsPage() {
       checkPermissions();
     } catch (err: any) {
       if (err.name === 'NotAllowedError') {
-        toast.error("Microphone access denied.");
+        toast.error("Microphone access denied. Check browser and Windows Privacy settings.");
         setMicStatus("denied");
+      } else if (err.name === 'NotFoundError') {
+        toast.error("No microphone detected! Please plug in a microphone.");
+      } else if (err.name === 'NotReadableError') {
+        toast.error("Microphone is busy. Please close Zoom, Teams, or any other apps using it.");
       } else {
-        toast.error("Error requesting microphone.");
+        toast.error(`Mic error: ${err.name || "Unknown"} - ${err.message || "Failed"}`);
       }
     }
   };
