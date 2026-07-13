@@ -43,7 +43,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="py-8 px-4 border-b flex flex-col items-center justify-center bg-primary/5">
+      <SidebarHeader className="py-8 px-4 border-b flex flex-col items-center justify-center bg-[#3B7BFF0D]">
         <div className="flex flex-col w-[180px]">
           <Image src="/logo.svg" alt="ESSPEE Logo" width={180} height={180} className="object-contain" />
           <h2 className="text-lg font-extrabold text-right leading-tight text-foreground mt-2">
