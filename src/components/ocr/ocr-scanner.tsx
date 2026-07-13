@@ -373,7 +373,14 @@ export function OcrScanner() {
           <div className="flex gap-2">
             <Select
               value={ocrLang}
-              onValueChange={(v) => v && setOcrLang(v)}
+              onValueChange={(v) => {
+                if (v) {
+                  setOcrLang(v);
+                  if (v === "eng") {
+                    setTargetFont("unicode");
+                  }
+                }
+              }}
               disabled={isProcessing}
             >
               <SelectTrigger className="w-[180px]">
