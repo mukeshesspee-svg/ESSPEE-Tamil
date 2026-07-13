@@ -24,6 +24,8 @@ interface EditorStore {
   setAiTone: (tone: string) => void;
   aiTargetFont: string;
   setAiTargetFont: (targetFont: string) => void;
+  aiLanguage: string;
+  setAiLanguage: (language: string) => void;
 
   // OCR Scanner
   ocrImage: string | null;
@@ -72,6 +74,8 @@ export const useEditorStore = create<EditorStore>((set) => ({
   setAiTone: (aiTone) => set({ aiTone }),
   aiTargetFont: 'bamini',
   setAiTargetFont: (aiTargetFont) => set({ aiTargetFont }),
+  aiLanguage: 'tamil',
+  setAiLanguage: (aiLanguage) => set({ aiLanguage }),
 
   // OCR Scanner
   ocrImage: null,

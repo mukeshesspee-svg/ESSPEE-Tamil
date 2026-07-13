@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: Request) {
   try {
-    const { prompt, tone } = await req.json();
+    const { prompt, tone, language = 'tamil' } = await req.json();
 
     if (!prompt) {
       return NextResponse.json({ error: "No prompt provided" }, { status: 400 });
@@ -22,18 +22,21 @@ export async function POST(req: Request) {
     // Use gemini-2.5-flash as it is highly stable
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+    const isEnglish = language === "english";
+    const langName = isEnglish ? "English" : "Tamil";
+
     let systemInstruction = "";
     if (tone === "professional") {
-      systemInstruction = "You are a professional Tamil copywriter. Write the response in highly professional, formal Tamil suitable for business or official use.";
+      systemInstruction = `You are a professional ${langName} copywriter. Write the response in highly professional, formal ${langName} suitable for business or official use.`;
     } else if (tone === "formal") {
-      systemInstruction = "You are a formal Tamil writer. Use respectful, formal Tamil.";
+      systemInstruction = `You are a formal ${langName} writer. Use respectful, formal ${langName}.`;
     } else if (tone === "simple") {
-      systemInstruction = "You are a helpful assistant. Write the response in very simple, easy-to-understand conversational Tamil.";
+      systemInstruction = `You are a helpful assistant. Write the response in very simple, easy-to-understand conversational ${langName}.`;
     } else if (tone === "creative") {
-      systemInstruction = "You are a creative Tamil author. Write the response using beautiful, expressive, and poetic Tamil phrasing.";
+      systemInstruction = `You are a creative ${langName} author. Write the response using beautiful, expressive, and poetic ${langName} phrasing.`;
     }
 
-    const finalPrompt = `${systemInstruction}\n\nUser Request: ${prompt}\n\nPlease respond ONLY with the Tamil content requested, without any introductory or concluding English phrases.`;
+    const finalPrompt = `${systemInstruction}\n\nUser Request: ${prompt}\n\nPlease respond ONLY with the ${langName} content requested, without any introductory or concluding phrases.`;
 
     const result = await model.generateContent(finalPrompt);
     const response = await result.response;

@@ -279,7 +279,16 @@ export function VoiceDictation() {
         <div className="flex items-center gap-2">
           <Select
             value={language}
-            onValueChange={(v) => setLanguage(v || "ta-IN")}
+            onValueChange={(v) => {
+              if (v) {
+                setLanguage(v);
+                if (v.startsWith("en")) {
+                  setTargetFont("unicode");
+                } else {
+                  setTargetFont("bamini");
+                }
+              }
+            }}
             disabled={isListening}
           >
             <SelectTrigger className="w-[180px]">

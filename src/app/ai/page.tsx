@@ -40,6 +40,8 @@ export default function AiWriterPage() {
     setAiTone: setTone,
     aiTargetFont: targetFont,
     setAiTargetFont: setTargetFont,
+    aiLanguage: language,
+    setAiLanguage: setLanguage,
   } = useEditorStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -59,7 +61,7 @@ export default function AiWriterPage() {
       const response = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, tone }),
+        body: JSON.stringify({ prompt, tone, language }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
@@ -149,7 +151,7 @@ export default function AiWriterPage() {
           <Sparkles className="w-8 h-8 text-primary" /> AI Writer
         </h1>
         <p className="text-muted-foreground">
-          Generate professional Tamil content instantly by providing a prompt in English or Tamil.
+          Generate professional Tamil or English content instantly by providing a prompt.
         </p>
       </div>
 
@@ -158,17 +160,35 @@ export default function AiWriterPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium">Your Prompt</h3>
-            <Select value={tone} onValueChange={(v) => setTone(v || "professional")}>
-              <SelectTrigger className="w-[150px] h-8">
-                <SelectValue placeholder="Tone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="formal">Formal</SelectItem>
-                <SelectItem value="simple">Simple Tamil</SelectItem>
-                <SelectItem value="creative">Creative</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={language} onValueChange={(v) => {
+                setLanguage(v);
+                if (v === "english") {
+                  setTargetFont("unicode");
+                } else {
+                  setTargetFont("bamini");
+                }
+              }}>
+                <SelectTrigger className="w-[140px] h-8">
+                  <SelectValue placeholder="Language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tamil">Tamil Output</SelectItem>
+                  <SelectItem value="english">English Output</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={tone} onValueChange={(v) => setTone(v || "professional")}>
+                <SelectTrigger className="w-[140px] h-8">
+                  <SelectValue placeholder="Tone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="formal">Formal</SelectItem>
+                  <SelectItem value="simple">Simple</SelectItem>
+                  <SelectItem value="creative">Creative</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <Textarea
             value={prompt}
