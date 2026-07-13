@@ -10,40 +10,40 @@ const tools = [
     description: "Type in Tanglish (Thanglish) and instantly get perfect Tamil Unicode text.",
     icon: <Keyboard className="w-8 h-8" />,
     href: "/tanglish",
-    gradient: "from-blue-500 to-cyan-400",
-    shadow: "shadow-blue-500/20"
+    color: "bg-[#3B82F6]",
+    shadowColor: "rgba(59, 130, 246, 0.2)"
   },
   {
     title: "OCR Scanner",
     description: "Extract Tamil and English text from images or PDFs with AI precision.",
     icon: <ScanLine className="w-8 h-8" />,
     href: "/ocr",
-    gradient: "from-purple-500 to-pink-500",
-    shadow: "shadow-purple-500/20"
+    color: "bg-[#A855F7]",
+    shadowColor: "rgba(168, 85, 247, 0.2)"
   },
   {
     title: "Voice Typing",
     description: "Speak in Tamil and watch it translate to text in real-time.",
     icon: <Mic className="w-8 h-8" />,
     href: "/voice",
-    gradient: "from-orange-500 to-red-500",
-    shadow: "shadow-orange-500/20"
+    color: "bg-[#F97316]",
+    shadowColor: "rgba(249, 115, 22, 0.2)"
   },
   {
     title: "Font Converter",
     description: "Convert Unicode to legacy encodings like Bamini, Vanavil, and TAB.",
     icon: <Languages className="w-8 h-8" />,
     href: "/converter",
-    gradient: "from-emerald-500 to-teal-400",
-    shadow: "shadow-emerald-500/20"
+    color: "bg-[#10B981]",
+    shadowColor: "rgba(16, 185, 129, 0.2)"
   },
   {
     title: "Batch Processing",
     description: "Convert massive text files or multiple documents in one click.",
     icon: <FileOutput className="w-8 h-8" />,
     href: "/batch",
-    gradient: "from-indigo-500 to-blue-600",
-    shadow: "shadow-indigo-500/20"
+    color: "bg-[#6366F1]",
+    shadowColor: "rgba(99, 102, 241, 0.2)"
   }
 ];
 
@@ -51,14 +51,14 @@ export default function Dashboard() {
   return (
     <div className="space-y-10 pb-10">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-background to-background border p-8 md:p-12 shadow-sm">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-primary/5 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-blue-500/5 blur-3xl"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-card border p-8 md:p-12 shadow-sm">
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-[#3B7BFF0D] blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-[#3B82F60D] blur-3xl"></div>
         
         <div className="relative z-10 max-w-2xl space-y-4">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
             Welcome to<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600 block mt-2">ESSPEE Tamil Writer Pro</span>
+            <span className="text-primary block mt-2">ESSPEE Tamil Writer Pro</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
             The ultimate suite for Tamil content creation. Type seamlessly, extract text from ancient documents with AI, and convert between legacy fonts in seconds.
@@ -72,11 +72,14 @@ export default function Dashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => (
             <Link key={tool.href} href={tool.href} className="block group">
-              <Card className={`relative h-full overflow-hidden transition-all duration-300 hover:shadow-xl ${tool.shadow} hover:-translate-y-1 border-primary/5`}>
-                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br ${tool.gradient} transition-opacity duration-500`}></div>
+              <Card 
+                className="relative h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-[#3B7BFF0D]"
+                style={{ '--tw-shadow-color': tool.shadowColor } as React.CSSProperties}
+              >
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 ${tool.color} transition-opacity duration-500`}></div>
                 
                 <div className="p-6 h-full flex flex-col">
-                  <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${tool.gradient} text-white mb-4 shadow-lg w-fit`}>
+                  <div className={`inline-flex p-3 rounded-2xl ${tool.color} text-white mb-4 shadow-lg w-fit`}>
                     {tool.icon}
                   </div>
                   
