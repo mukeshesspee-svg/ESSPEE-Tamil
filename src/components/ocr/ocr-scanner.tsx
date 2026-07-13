@@ -318,7 +318,7 @@ export function OcrScanner() {
     <div className="flex flex-col md:flex-row gap-6 w-full h-full max-w-6xl mx-auto">
       <div className="flex-1 flex flex-col gap-4">
         {/* AI Mode Toggle */}
-        <div className={`p-4 border rounded-md shadow-sm ${useAi ? 'bg-primary/5 border-primary/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+        <div className={`p-4 border rounded-md shadow-sm ${useAi ? 'bg-[#3B7BFF0D] border-[#3B7BFF33]' : 'bg-[#F59E0B0D] border-[#F59E0B33]'}`}>
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-bold flex items-center gap-2 text-primary">
               <Sparkles className="w-4 h-4" /> AI OCR Mode (Gemini)
@@ -335,7 +335,7 @@ export function OcrScanner() {
               <p className="text-xs text-muted-foreground">
                 ✅ AI Mode is ON. Gemini Vision will handle mobile photos, shadows, angles, and blurry text with <strong>near 100% accuracy</strong>. Also supports PDF scanning.
               </p>
-              <div className="flex items-center justify-between pt-3 border-t border-primary/10 mt-3">
+              <div className="flex items-center justify-between pt-3 border-t border-[#3B7BFF1A] mt-3">
                 <label
                   htmlFor="auto-correct-top"
                   className="text-sm font-medium cursor-pointer"
