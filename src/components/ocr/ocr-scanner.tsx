@@ -378,6 +378,8 @@ export function OcrScanner() {
                   setOcrLang(v);
                   if (v === "eng") {
                     setTargetFont("unicode");
+                  } else {
+                    setTargetFont("bamini");
                   }
                 }
               }}
