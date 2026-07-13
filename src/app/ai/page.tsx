@@ -162,11 +162,13 @@ export default function AiWriterPage() {
             <h3 className="font-medium">Your Prompt</h3>
             <div className="flex gap-2">
               <Select value={language} onValueChange={(v) => {
-                setLanguage(v);
-                if (v === "english") {
-                  setTargetFont("unicode");
-                } else {
-                  setTargetFont("bamini");
+                if (v) {
+                  setLanguage(v);
+                  if (v === "english") {
+                    setTargetFont("unicode");
+                  } else {
+                    setTargetFont("bamini");
+                  }
                 }
               }}>
                 <SelectTrigger className="w-[140px] h-8">
