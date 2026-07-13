@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { useEditorStore } from "@/store/editor-store";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Copy, Trash2, Download, FileText, File as FileIcon, WifiOff } from "lucide-react";
@@ -30,9 +31,13 @@ const copyToClipboard = async (text: string): Promise<void> => {
 };
 
 export function TanglishEditor() {
-  const [text, setText] = useState("");
+  const {
+    tanglishText: text,
+    setTanglishText: setText,
+    tanglishTargetFont: targetFont,
+    setTanglishTargetFont: setTargetFont,
+  } = useEditorStore();
   const [isTranslating, setIsTranslating] = useState(false);
-  const [targetFont, setTargetFont] = useState("bamini");
   const [apiError, setApiError] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

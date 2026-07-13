@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useEditorStore } from "@/store/editor-store";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Copy, Trash2, Send, Download, FileText, File as FileIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -30,11 +31,17 @@ const copyToClipboard = async (text: string): Promise<void> => {
 };
 
 export default function AiWriterPage() {
-  const [prompt, setPrompt] = useState("");
-  const [result, setResult] = useState("");
+  const {
+    aiPrompt: prompt,
+    setAiPrompt: setPrompt,
+    aiResult: result,
+    setAiResult: setResult,
+    aiTone: tone,
+    setAiTone: setTone,
+    aiTargetFont: targetFont,
+    setAiTargetFont: setTargetFont,
+  } = useEditorStore();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [tone, setTone] = useState("professional");
-  const [targetFont, setTargetFont] = useState("bamini");
 
   const generateAI = async () => {
     if (!prompt.trim()) {

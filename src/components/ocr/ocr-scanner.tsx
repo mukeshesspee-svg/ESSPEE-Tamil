@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { useEditorStore } from "@/store/editor-store";
 import { Upload, Camera, Copy, Trash2, FileImage, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -34,17 +35,27 @@ const copyToClipboard = async (text: string): Promise<void> => {
 };
 
 export function OcrScanner() {
-  const [image, setImage] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<string | null>(null);
+  const {
+    ocrImage: image,
+    setOcrImage: setImage,
+    ocrFileType: fileType,
+    setOcrFileType: setFileType,
+    ocrResult: result,
+    setOcrResult: setResult,
+    ocrLang,
+    setOcrLang,
+    ocrExtractTamilOnly: extractTamilOnly,
+    setOcrExtractTamilOnly: setExtractTamilOnly,
+    ocrUseAi: useAi,
+    setOcrUseAi: setUseAi,
+    ocrAutoCorrect: autoCorrect,
+    setOcrAutoCorrect: setAutoCorrect,
+    ocrTargetFont: targetFont,
+    setOcrTargetFont: setTargetFont,
+  } = useEditorStore();
   const [isProcessing, setIsProcessing] = useState(false);
   const [batchStatus, setBatchStatus] = useState({ current: 0, total: 0 });
   const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState("");
-  const [ocrLang, setOcrLang] = useState("tam");
-  const [extractTamilOnly, setExtractTamilOnly] = useState(false);
-  const [useAi, setUseAi] = useState(true);
-  const [autoCorrect, setAutoCorrect] = useState(true);
-  const [targetFont, setTargetFont] = useState("bamini");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

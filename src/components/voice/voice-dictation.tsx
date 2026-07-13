@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { useEditorStore } from "@/store/editor-store";
 import { Mic, MicOff, Copy, Trash2, Languages, Download, FileText, File as FileIcon, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -32,16 +33,21 @@ const copyToClipboard = async (text: string): Promise<void> => {
 
 export function VoiceDictation() {
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [language, setLanguage] = useState("ta-IN");
-  const [targetFont, setTargetFont] = useState("bamini");
+  const {
+    voiceTranscript: transcript,
+    setVoiceTranscript: setTranscript,
+    voiceLanguage: language,
+    setVoiceLanguage: setLanguage,
+    voiceTargetFont: targetFont,
+    setVoiceTargetFont: setTargetFont,
+  } = useEditorStore();
   const [isSupported, setIsSupported] = useState(true);
 
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
   // This ref always holds the latest committed (final) transcript text
   // and is safe to use inside event handlers without stale closure issues.
-  const finalTranscriptRef = useRef("");
+  const finalTranscriptRef = useRef(transcript);
 
   useEffect(() => {
     // Check browser support on mount
