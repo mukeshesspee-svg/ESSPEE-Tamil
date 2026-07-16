@@ -271,7 +271,7 @@ export default function SettingsPage() {
       <div className="flex flex-col items-center justify-center py-8">
         <Image src="/logo.svg" alt="ESSPEE Logo" width={120} height={120} className="object-contain" />
         <p className="text-sm font-bold text-muted-foreground mt-2">Tamil Writer Pro</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">Created by: Mukesh Paramasivan</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">Powered By 3Brainz Studio</p>
       </div>
     </div>
   );

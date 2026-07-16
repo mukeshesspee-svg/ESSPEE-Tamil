@@ -91,7 +91,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4 border-t">
         <p className="text-xs text-center text-muted-foreground font-medium">
-          Created by: Mukesh Paramasivan
+          Powered By 3Brainz Studio
         </p>
       </SidebarFooter>
     </Sidebar>
