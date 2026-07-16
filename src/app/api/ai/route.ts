@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { currentUser } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
   try {
+    const user = await currentUser();
+    if (!user || user.publicMetadata?.isPremium !== true) {
+      return NextResponse.json({ error: "Upgrade to Pro to use AI features" }, { status: 403 });
+    }
+
     const { prompt, tone, language = 'tamil' } = await req.json();
 
     if (!prompt) {

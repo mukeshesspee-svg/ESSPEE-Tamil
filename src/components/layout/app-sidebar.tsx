@@ -22,7 +22,8 @@ import {
   Languages, 
   CopyCheck, 
   Settings, 
-  LayoutDashboard 
+  LayoutDashboard,
+  CreditCard
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -75,6 +76,16 @@ export function AppSidebar() {
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  isActive={pathname === "/pricing"} 
+                  className="py-5"
+                  render={<Link href="/pricing" className="flex items-center gap-3 w-full" />}
+                >
+                  <CreditCard className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-bold text-primary">Upgrade to Pro</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   isActive={pathname === "/settings"} 

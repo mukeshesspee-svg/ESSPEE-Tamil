@@ -3,7 +3,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { UserCircle } from "lucide-react";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 export function Topbar() {
   return (
@@ -11,6 +11,14 @@ export function Topbar() {
       <SidebarTrigger className="-ml-1" />
       <div className="flex-1" />
       <ThemeToggle />
+      <SignedOut>
+        <SignInButton mode="modal">
+          <Button variant="outline" size="sm">Sign In</Button>
+        </SignInButton>
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
     </header>
   );
 }

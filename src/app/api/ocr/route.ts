@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { currentUser } from "@clerk/nextjs/server";
 
 export const maxDuration = 120; // 120 seconds timeout for Vercel/Next.js backend
 
 export async function POST(req: Request) {
   try {
+    const user = await currentUser();
+    if (!user || user.publicMetadata?.isPremium !== true) {
+      return NextResponse.json({ error: "Upgrade to Pro to use AI OCR" }, { status: 403 });
+    }
+
     const { base64Image, languageMode, autoCorrect = true } = await req.json();
 
     if (!base64Image) {
